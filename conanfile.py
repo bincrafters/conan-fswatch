@@ -79,5 +79,5 @@ class FsWatchConan(ConanFile):
         if self._is_clang_i386:
             self.cpp_info.libs.append("atomic")
         if self.settings.os in ["Macos", "iOS", "watchOS", "tvOS"]:
-            self.cpp_info.exelinkflags.extend(["-framework CoreFoundation"])
+            self.cpp_info.exelinkflags.extend(["-framework CoreFoundation", "-framework CoreServices"])
             self.cpp_info.sharedlinkflags = self.cpp_info.exelinkflags
