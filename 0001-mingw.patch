@@ -1,5 +1,5 @@
 diff --git a/Makefile.in b/Makefile.in
-index aa96dce..a32f9d4 100644
+index aa96dce..2e24132 100644
 --- a/Makefile.in
 +++ b/Makefile.in
 @@ -235,7 +235,8 @@ am__DIST_COMMON = $(dist_man_MANS) $(srcdir)/Makefile.in \
@@ -7,8 +7,8 @@ index aa96dce..a32f9d4 100644
  	ChangeLog INSTALL NEWS README config/ar-lib config/compile \
  	config/config.guess config/config.rpath config/config.sub \
 -	config/install-sh config/ltmain.sh config/missing
-+	config/depcomp config/install-sh config/ltmain.sh \
-+	config/mdate-sh config/missing config/texinfo.tex
++	config/install-sh config/ltmain.sh config/mdate-sh \
++	config/missing config/texinfo.tex
  DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
  distdir = $(PACKAGE)-$(VERSION)
  top_distdir = $(distdir)
@@ -1717,19 +1717,6 @@ index 445b939..7aefddc 100644
  }
  
  static void print_event_path(const event& evt)
-diff --git a/libfswatch/Makefile.in b/libfswatch/Makefile.in
-index 9802146..a33b049 100644
---- a/libfswatch/Makefile.in
-+++ b/libfswatch/Makefile.in
-@@ -191,7 +191,7 @@ am__define_uniq_tagged_files = \
- ETAGS = etags
- CTAGS = ctags
- DIST_SUBDIRS = $(SUBDIRS)
--am__DIST_COMMON = $(srcdir)/Makefile.in
-+am__DIST_COMMON = $(srcdir)/Makefile.in README
- DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
- am__relativize = \
-   dir0=`pwd`; \
 diff --git a/libfswatch/src/libfswatch/Makefile.am b/libfswatch/src/libfswatch/Makefile.am
 index 15ae928..2c9f30f 100644
 --- a/libfswatch/src/libfswatch/Makefile.am
