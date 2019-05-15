@@ -46,7 +46,7 @@ class FsWatchConan(ConanFile):
             ]
             self._autotools = AutoToolsBuildEnvironment(self, win_bash=tools.os_info.is_windows)
 
-            autotools_vars = self._autotools.autotools.vars
+            autotools_vars = self._autotools.vars
             if self._is_mingw:
                 autotools_vars["CFLAGS"] = "-DHAVE_WINDOWS"
                 autotools_vars["CXXFLAGS"] = "-DHAVE_WINDOWS"
