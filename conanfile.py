@@ -13,7 +13,7 @@ class FsWatchConan(ConanFile):
     author = "Bincrafters <bincrafters@gmail.com>"
     license = "GPL-3.0"
     exports = ["LICENSE.md"]
-    exports_sources = ["CMakeLists.txt"]
+    exports_sources = ["0001-mingw.patch"]
     generators = "cmake"
     settings = "os", "arch", "compiler", "build_type"
     options = {"shared": [True, False], "fPIC": [True, False]}
@@ -23,6 +23,10 @@ class FsWatchConan(ConanFile):
     @property
     def _source_subfolder(self):
         return "source_subfolder"
+
+    @property
+    def _is_mingw(self):
+        return self.settings.os == "Windows" and self.settings.compiler == "gcc"
 
     def config_options(self):
         if self.settings.os == 'Windows':
@@ -41,10 +45,17 @@ class FsWatchConan(ConanFile):
                 "--enable-static={}".format("no" if self.options.shared else "yes")
             ]
             self._autotools = AutoToolsBuildEnvironment(self, win_bash=tools.os_info.is_windows)
-            self._autotools.configure(args=args, configure_dir=self._source_subfolder)
+
+            autotools_vars = self._autotools.autotools.vars
+            if self._is_mingw:
+                autotools_vars["CFLAGS"] = "-DHAVE_WINDOWS"
+                autotools_vars["CXXFLAGS"] = "-DHAVE_WINDOWS"
+            self._autotools.configure(args=args, configure_dir=self._source_subfolder, vars=autotools_vars)
         return self._autotools
 
     def build(self):
+        if self._is_mingw:
+            tools.patch(base_path=self._source_subfolder, patch_file="0001-mingw.patch")
         autotools = self._configure_autotools()
         autotools.make()
 
