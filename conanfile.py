@@ -28,6 +28,10 @@ class FsWatchConan(ConanFile):
     def _is_mingw(self):
         return self.settings.os == "Windows" and self.settings.compiler == "gcc"
 
+    @property
+    def _is_clang_i386(self):
+        return self.settings.compiler == "clang" and self.settings.arch == "x86"
+
     def config_options(self):
         if self.settings.os == 'Windows':
             del self.options.fPIC
@@ -50,6 +54,8 @@ class FsWatchConan(ConanFile):
             if self._is_mingw:
                 autotools_vars["CFLAGS"] = "-DHAVE_WINDOWS"
                 autotools_vars["CXXFLAGS"] = "-DHAVE_WINDOWS"
+            if self._is_clang_i386:
+                autotools_vars["LIBS"] = "-latomic"
             self._autotools.configure(args=args, configure_dir=self._source_subfolder, vars=autotools_vars)
         return self._autotools
 
@@ -70,3 +76,8 @@ class FsWatchConan(ConanFile):
         self.cpp_info.libs = tools.collect_libs(self)
         if self.settings.os == "Linux":
             self.cpp_info.libs.extend(["pthread", "m"])
+        if self._is_clang_i386:
+            self.cpp_info.libs.append("atomic")
+        if self.settings.os in ["Macos", "iOS", "watchOS", "tvOS"]:
+            self.cpp_info.exelinkflags.extend(["-framework CoreFoundation"])
+            self.cpp_info.sharedlinkflags = self.cpp_info.exelinkflags
