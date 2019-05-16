@@ -40,7 +40,7 @@ index 445b939..7aefddc 100644
  
  static void print_event_path(const event& evt)
 diff --git a/libfswatch/CMakeLists.txt b/libfswatch/CMakeLists.txt
-index a7d9503..c510fe4 100644
+index a7d9503..9dc25d3 100644
 --- a/libfswatch/CMakeLists.txt
 +++ b/libfswatch/CMakeLists.txt
 @@ -79,9 +79,6 @@ if (HAVE_PORT_H)
@@ -61,12 +61,18 @@ index a7d9503..c510fe4 100644
  endif (WIN32)
  
  if (APPLE)
-@@ -118,3 +114,13 @@ endif (APPLE)
- add_library(libfswatch ${LIB_SOURCE_FILES})
- target_include_directories(libfswatch PUBLIC src)
- target_link_libraries(libfswatch ${CORESERVICES_LIBRARY})
+@@ -115,6 +111,16 @@ if (APPLE)
+     endif (HAVE_FSEVENTS_FILE_EVENTS)
+ endif (APPLE)
+ 
+-add_library(libfswatch ${LIB_SOURCE_FILES})
+-target_include_directories(libfswatch PUBLIC src)
+-target_link_libraries(libfswatch ${CORESERVICES_LIBRARY})
++add_library(fswatch ${LIB_SOURCE_FILES})
++target_include_directories(fswatch PUBLIC src)
++target_link_libraries(fswatch ${CORESERVICES_LIBRARY})
 +
-+install(TARGETS libfswatch
++install(TARGETS fswatch
 +        RUNTIME DESTINATION bin
 +        LIBRARY DESTINATION lib
 +        ARCHIVE DESTINATION lib)
