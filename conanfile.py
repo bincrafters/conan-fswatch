@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
-from conans import ConanFile, tools, AutoToolsBuildEnvironment
+import shutil
+from conans import ConanFile, tools, AutoToolsBuildEnvironment, CMake
 
 
 class FsWatchConan(ConanFile):
@@ -13,7 +14,7 @@ class FsWatchConan(ConanFile):
     author = "Bincrafters <bincrafters@gmail.com>"
     license = "GPL-3.0"
     exports = ["LICENSE.md"]
-    exports_sources = ["0001-mingw.patch"]
+    exports_sources = ["0001-mingw.patch", "libfswatch_config-msvc.h", "CMakeLists.txt"]
     generators = "cmake"
     settings = "os", "arch", "compiler", "build_type"
     options = {"shared": [True, False], "fPIC": [True, False]}
@@ -23,10 +24,10 @@ class FsWatchConan(ConanFile):
     @property
     def _source_subfolder(self):
         return "source_subfolder"
-
+    
     @property
-    def _is_mingw(self):
-        return self.settings.os == "Windows" and self.settings.compiler == "gcc"
+    def _source_subfolder_unix(self):
+        return "source_subfolder_unix"
 
     @property
     def _is_clang_i386(self):
@@ -35,11 +36,19 @@ class FsWatchConan(ConanFile):
     def config_options(self):
         if self.settings.os == 'Windows':
             del self.options.fPIC
+    
+    def requirements(self):
+        if self.settings.compiler == "Visual Studio" and self.settings.os == "Windows":
+            self.requires.add("dirent-win32/1.23.2@bincrafters/stable")
 
     def source(self):
         sha256 = "44d5707adc0e46d901ba95a5dc35c5cc282bd6f331fcf9dbf9fad4af0ed5b29d"
-        tools.get("{0}/releases/download/{1}/fswatch-{1}.tar.gz".format(self.homepage, self.version), sha256=sha256)
+        tools.get("{0}/releases/download/{1}/fswatch-{1}.tar.gz".format(self.homepage, self.version), sha256=sha256)        
         extracted_dir = self.name + "-" + self.version
+        os.rename(extracted_dir, self._source_subfolder_unix)
+        
+        sha256 = "c4f5ef92e79dda7e50c1ded42784791ef536c99684f3d677f6621fe73ee857d2"
+        tools.get("{0}/archive/{1}.tar.gz".format(self.homepage, self.version), sha256=sha256)
         os.rename(extracted_dir, self._source_subfolder)
 
     def _configure_autotools(self):
@@ -51,27 +60,52 @@ class FsWatchConan(ConanFile):
             self._autotools = AutoToolsBuildEnvironment(self, win_bash=tools.os_info.is_windows)
 
             autotools_vars = self._autotools.vars
-            if self._is_mingw:
-                autotools_vars["CFLAGS"] = "-DHAVE_WINDOWS"
-                autotools_vars["CXXFLAGS"] = "-DHAVE_WINDOWS"
             if self._is_clang_i386:
                 autotools_vars["LIBS"] = "-latomic"
-            self._autotools.configure(args=args, configure_dir=self._source_subfolder, vars=autotools_vars)
+            self._autotools.configure(args=args, configure_dir=self._source_subfolder_unix, vars=autotools_vars)
         return self._autotools
 
-    def build(self):
-        if self._is_mingw:
-            tools.patch(base_path=self._source_subfolder, patch_file="0001-mingw.patch")
+    def _configure_cmake(self):
+        cmake = CMake(self)
+        cmake.verbose = True
+        if self.settings.os == 'Windows' and self.settings.compiler == 'Visual Studio':
+            cmake.definitions['CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS'] = self.options.shared
+        cmake.configure()
+        return cmake
+
+    def _build_windows(self):
+        tools.patch(base_path=self._source_subfolder, patch_file="0001-mingw.patch")
+        shutil.move("libfswatch_config-msvc.h", os.path.join(self._source_subfolder, "libfswatch_config.h"))
+        cmake = self._configure_cmake()
+        cmake.build()
+
+    def _build_unix(self):        
         autotools = self._configure_autotools()
         autotools.make()
 
-    def package(self):
-        self.copy(pattern="COPYING", dst="licenses", src=self._source_subfolder)
+    def build(self):
+        if self.settings.os == "Windows":
+            self._build_windows()
+        else:
+            self._build_unix()        
+    
+    def _package_unix(self):
         autotools = self._configure_autotools()
         autotools.install()
         for folder in ["share", "bin"]:
             tools.rmdir(os.path.join(self.package_folder, folder))
+        
+    def _package_windows(self):
+        cmake = self._configure_cmake()
+        cmake.install()
 
+    def package(self):
+        self.copy(pattern="COPYING", dst="licenses", src=self._source_subfolder)
+        if self.settings.os == "Windows":
+            self._package_windows()
+        else:
+            self._package_unix()
+        
     def package_info(self):
         self.cpp_info.libs = tools.collect_libs(self)
         if self.settings.os == "Linux":
