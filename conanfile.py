@@ -2,6 +2,8 @@
 import os
 import shutil
 from conans import ConanFile, tools, AutoToolsBuildEnvironment, CMake
+from conans.tools import Version
+from conans.errors import ConanInvalidConfiguration
 
 
 class FsWatchConan(ConanFile):
@@ -24,7 +26,7 @@ class FsWatchConan(ConanFile):
     @property
     def _source_subfolder(self):
         return "source_subfolder"
-    
+
     @property
     def _source_subfolder_unix(self):
         return "source_subfolder_unix"
@@ -34,19 +36,25 @@ class FsWatchConan(ConanFile):
         return self.settings.compiler == "clang" and self.settings.arch == "x86"
 
     def config_options(self):
-        if self.settings.os == 'Windows':
+        if self.settings.os == "Windows":
             del self.options.fPIC
-    
+
+    def configure(self):
+        if self.settings.os == "Windows" and \
+           self.settings.compiler == "Visual Studio" and \
+           Version(self.settings.compiler.version.value) < "14":
+            raise ConanInvalidConfiguration("fswatch requires Visual Studio >= 14")
+
     def requirements(self):
         if self.settings.compiler == "Visual Studio" and self.settings.os == "Windows":
             self.requires.add("dirent-win32/1.23.2@bincrafters/stable")
 
     def source(self):
         sha256 = "44d5707adc0e46d901ba95a5dc35c5cc282bd6f331fcf9dbf9fad4af0ed5b29d"
-        tools.get("{0}/releases/download/{1}/fswatch-{1}.tar.gz".format(self.homepage, self.version), sha256=sha256)        
+        tools.get("{0}/releases/download/{1}/fswatch-{1}.tar.gz".format(self.homepage, self.version), sha256=sha256)
         extracted_dir = self.name + "-" + self.version
         os.rename(extracted_dir, self._source_subfolder_unix)
-        
+
         sha256 = "c4f5ef92e79dda7e50c1ded42784791ef536c99684f3d677f6621fe73ee857d2"
         tools.get("{0}/archive/{1}.tar.gz".format(self.homepage, self.version), sha256=sha256)
         os.rename(extracted_dir, self._source_subfolder)
@@ -79,7 +87,7 @@ class FsWatchConan(ConanFile):
         cmake = self._configure_cmake()
         cmake.build()
 
-    def _build_unix(self):        
+    def _build_unix(self):
         autotools = self._configure_autotools()
         autotools.make()
 
@@ -87,14 +95,14 @@ class FsWatchConan(ConanFile):
         if self.settings.os == "Windows":
             self._build_windows()
         else:
-            self._build_unix()        
-    
+            self._build_unix()
+
     def _package_unix(self):
         autotools = self._configure_autotools()
         autotools.install()
         for folder in ["share", "bin"]:
             tools.rmdir(os.path.join(self.package_folder, folder))
-        
+
     def _package_windows(self):
         cmake = self._configure_cmake()
         cmake.install()
@@ -105,7 +113,7 @@ class FsWatchConan(ConanFile):
             self._package_windows()
         else:
             self._package_unix()
-        
+
     def package_info(self):
         self.cpp_info.libs = tools.collect_libs(self)
         if self.settings.os == "Linux":
