@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import os
 import shutil
 from conans import ConanFile, tools, AutoToolsBuildEnvironment, CMake
@@ -13,7 +12,6 @@ class FsWatchConan(ConanFile):
     topics = ("conan", "fswatch", "event-notifications", "change-monitor", "inotify", "kqueue")
     url = "https://github.com/bincrafters/conan-fswatch"
     homepage = "https://github.com/emcrisostomo/fswatch"
-    author = "Bincrafters <bincrafters@gmail.com>"
     license = "GPL-3.0"
     exports = ["LICENSE.md"]
     exports_sources = ["0001-mingw.patch", "libfswatch_config-msvc.h", "CMakeLists.txt"]
