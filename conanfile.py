@@ -45,7 +45,7 @@ class FsWatchConan(ConanFile):
 
     def requirements(self):
         if self.settings.compiler == "Visual Studio" and self.settings.os == "Windows":
-            self.requires.add("dirent-win32/1.23.2@bincrafters/stable")
+            self.requires.add("dirent/1.23.2")
 
     def source(self):
         sha256 = "44d5707adc0e46d901ba95a5dc35c5cc282bd6f331fcf9dbf9fad4af0ed5b29d"
