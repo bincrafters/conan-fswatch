@@ -13,7 +13,6 @@ class FsWatchConan(ConanFile):
     url = "https://github.com/bincrafters/conan-fswatch"
     homepage = "https://github.com/emcrisostomo/fswatch"
     license = "GPL-3.0"
-    exports = ["LICENSE.md"]
     exports_sources = ["0001-mingw.patch", "libfswatch_config-msvc.h", "CMakeLists.txt"]
     generators = "cmake"
     settings = "os", "arch", "compiler", "build_type"
