@@ -2,7 +2,7 @@ import os
 import shutil
 from conans import ConanFile, tools, AutoToolsBuildEnvironment, CMake
 from conans.tools import Version
-from conans.errors import ConanInvalidConfiguration
+from conan.errors import ConanInvalidConfiguration
 
 
 class FsWatchConan(ConanFile):
